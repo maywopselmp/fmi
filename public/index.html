@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>2FA + CAPTCHA Solver</title>
+  <!-- Firebase SDK for real-time updates -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<body>
+  <h1>2FA Verification</h1>
+
+  <h2>Enter OTP</h2>
+  <input type="text" id="otp" placeholder="Enter OTP">
+  <button onclick="verifyOTP()">Verify</button>
+
+  <h2>CAPTCHA Solver</h2>
+  <div id="captchaContainer"></div>
+  <div id="statusMessage"></div>
+
+  <script>
+    // Placeholder for Firebase configuration
+    const firebaseConfig = {};
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Verify the OTP
+    function verifyOTP() {
+      const otp = document.getElementById("otp").value;
+
+      fetch("/.netlify/functions/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: otp }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            alert("OTP verified successfully!");
+            isOTPVerified = true;
+            document.getElementById("statusMessage").textContent =
+              "You can now solve CAPTCHAs.";
+          } else {
+            alert("Invalid OTP. Please try again.");
+          }
+        });
+    }
+
+    // Listen for new pending CAPTCHAs
+    database.ref('captchas')
+      .orderByChild('status')
+      .equalTo('pending')
+      .on('child_added', (snapshot) => {
+        const captchaId = snapshot.key;
+        const captchaData = snapshot.val();
+
+        if (!isOTPVerified) {
+          document.getElementById('statusMessage').textContent =
+            "Please verify OTP before solving CAPTCHAs.";
+          return;
+        }
+
+        displayCaptcha(captchaId, captchaData);
+      });
+
+    function displayCaptcha(captchaId, data) {
+      document.getElementById('statusMessage').textContent = 'New mission detected!';
+      // Load Geetest CAPTCHA dynamically
+      const script = document.createElement('script');
+      script.src = `https://${data.api_server}/geetest.js?gt=${data.gt}&challenge=${data.challenge}`;
+      document.head.appendChild(script);
+      script.onload = () => {
+        initGeetest({
+          gt: data.gt,
+          challenge: data.challenge,
+          offline: false,
+          new_captcha: true,
+        }, (captcha) => {
+          document.getElementById('captchaContainer').innerHTML = '';
+          captcha.appendTo('#captchaContainer');
+          captcha.onSuccess(() => {
+            const solution = captcha.getValidate();
+            // Update CAPTCHA status to solved
+            database.ref(`captchas/${captchaId}`).update({
+              solution,
+              status: 'solved',
+              solvedAt: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+              document.getElementById('statusMessage').textContent = 'Mission solved! Checking for more...';
+              setTimeout(() => {
+                document.getElementById('captchaContainer').innerHTML = '';
+                document.getElementById('statusMessage').textContent = 'Waiting for new missions...';
+              }, 3000);
+            });
+          });
+        });
+      };
+    }
+  </script>
+</body>
+</html>
