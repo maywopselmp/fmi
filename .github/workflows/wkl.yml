@@ -31,7 +31,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}  # Use the PAT instead of GITHUB_TOKEN
           branch: update-package-lock
           title: "chore: regenerate package-lock.json"
           body: "This PR updates the package-lock.json file."
