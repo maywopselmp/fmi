@@ -1,0 +1,30 @@
+name: Update Dependencies
+
+on:
+  workflow_dispatch:  # Allows manual triggering from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20  # Use your project's Node.js version
+          cache: 'npm'
+
+      - name: Install dependencies (clean install)
+        run: npm ci  # Uses package-lock.json for exact versions
+
+      - name: Update dependencies
+        run: npm update  # Updates packages to latest allowed by package.json
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add package.json package-lock.json
+          git diff --exit-code || (git commit -m "chore: update dependencies" && git push)
