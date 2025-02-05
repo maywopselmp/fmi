@@ -6,22 +6,28 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20  # Use your project's Node.js version
-          cache: 'npm'
+          cache: 'npm'      # Cache npm dependencies for faster builds
 
-      - name: Install dependencies (clean install)
+      # Step 3: Install dependencies (clean install)
+      - name: Install dependencies
         run: npm ci  # Uses package-lock.json for exact versions
 
+      # Step 4: Update dependencies
       - name: Update dependencies
         run: npm update  # Updates packages to latest allowed by package.json
 
+      # Step 5: Commit changes
       - name: Commit changes
         run: |
           git config --global user.name "GitHub Actions"
