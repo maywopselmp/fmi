@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "2fa",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "prebuild": "node generate-encryption-key.js",
+    "build": "echo 'Build process completed!'"
+  },
   "dependencies": {
     "speakeasy": "^2.0.0"
   },
