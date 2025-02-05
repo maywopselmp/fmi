@@ -4,10 +4,10 @@
   "description": "2fa",
   "main": "index.js",
   "scripts": {
-    "build": "node build.js" // Optional: If you're using a build script for Firebase configuration
+    "build": "node build.js"
   },
   "dependencies": {
-    "speakeasy": "^2.0.0" // For OTP verification
+    "speakeasy": "^2.0.0"
   },
   "keywords": [],
   "author": "Your Name",
