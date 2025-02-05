@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "2fa",
   "main": "index.js",
-  "scripts": {
-    "build": "node verify-otp.js"
-  },
+  "scripts": {},
   "dependencies": {
     "speakeasy": "^2.0.0"
   },
