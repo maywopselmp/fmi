@@ -15,29 +15,24 @@
   <div id="captchaContainer"></div>
   <div id="statusMessage"></div>
   <button id="logoutButton" style="display: none;" onclick="logout()">Logout</button>
-
   <script>
-    // Placeholder for Firebase configuration
-    const firebaseConfig = {};
     // Initialize Firebase
+    const firebaseConfig = {}; // Placeholder replaced by build.js
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    let encryptedApiKey = null; // Encrypted API key
-    let sessionId = "session-abc123"; // Example session ID (replace with actual session ID)
-    let userId = "user123"; // Example user ID (replace with actual user ID)
+    let sessionId = "session-abc123"; // Replace with actual session ID (e.g., generated dynamically)
+    let userId = "user123"; // Replace with actual user ID (e.g., from Netlify Identity)
 
     // Verify the OTP
     function verifyOTP() {
       const otp = document.getElementById("otp").value;
 
-      fetch("/.netlify/functions/verify-otp", {
+      fetch("/api/verify-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-initial-api-key": "initial-api-key", // Replace with actual initial API key
           "x-session-id": sessionId,
-          "x-user-id": userId,
         },
         body: JSON.stringify({ token: otp }),
       })
@@ -45,18 +40,13 @@
         .then((data) => {
           if (data.success) {
             alert("OTP verified successfully!");
-            encryptedApiKey = data.apiKey;
-
-            // Store the encrypted API key securely in a cookie
-            document.cookie = `apiKey=${encryptedApiKey}; HttpOnly; Secure; SameSite=Strict`;
-
-            // Enable the logout button
+            // Enable CAPTCHA solving
             document.getElementById("logoutButton").style.display = "block";
-
             document.getElementById("statusMessage").textContent =
               "You can now solve CAPTCHAs.";
+            startListeningForCaptchas();
           } else {
-            alert("Invalid OTP. Please try again.");
+            alert(data.message || "Invalid OTP. Please try again.");
           }
         })
         .catch((error) => {
@@ -65,56 +55,21 @@
         });
     }
 
-    // Logout Functionality
-    function logout() {
-      fetch("/.netlify/functions/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": encryptedApiKey,
-          "x-session-id": sessionId,
-          "x-user-id": userId,
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            alert("Logged out successfully. New API key generated for the next session.");
-
-            // Clear the encrypted API key and hide the logout button
-            encryptedApiKey = null;
-            document.getElementById("logoutButton").style.display = "none";
-
-            document.getElementById("statusMessage").textContent =
-              "You have been logged out. Please log in again.";
-          } else {
-            alert("Failed to log out. Please try again.");
-          }
-        })
-        .catch((error) => {
-          console.error("Error logging out:", error);
-          alert("An error occurred while logging out. Please try again.");
+    // Start listening for new CAPTCHAs
+    function startListeningForCaptchas() {
+      database.ref('captchas')
+        .orderByChild('status')
+        .equalTo('pending')
+        .on('child_added', (snapshot) => {
+          const captchaId = snapshot.key;
+          const captchaData = snapshot.val();
+          displayCaptcha(captchaId, captchaData);
         });
     }
 
-    // Listen for new pending CAPTCHAs
-    database.ref('captchas')
-      .orderByChild('status')
-      .equalTo('pending')
-      .on('child_added', (snapshot) => {
-        const captchaId = snapshot.key;
-        const captchaData = snapshot.val();
-        if (!encryptedApiKey) {
-          document.getElementById('statusMessage').textContent =
-            "Please verify OTP before solving CAPTCHAs.";
-          return;
-        }
-        displayCaptcha(captchaId, captchaData);
-      });
-
+    // Display and solve CAPTCHA
     function displayCaptcha(captchaId, data) {
       document.getElementById('statusMessage').textContent = 'New mission detected!';
-      // Load Geetest CAPTCHA dynamically
       const script = document.createElement('script');
       script.src = `https://${data.api_server}/geetest.js?gt=${data.gt}&challenge=${data.challenge}`;
       document.head.appendChild(script);
@@ -133,7 +88,7 @@
             database.ref(`captchas/${captchaId}`).update({
               solution,
               status: 'solved',
-              solvedAt: firebase.database.ServerValue.TIMESTAMP
+              solvedAt: firebase.database.ServerValue.TIMESTAMP,
             }).then(() => {
               document.getElementById('statusMessage').textContent = 'Mission solved! Checking for more...';
               setTimeout(() => {
@@ -144,6 +99,33 @@
           });
         });
       };
+    }
+
+    // Logout Functionality
+    function logout() {
+      fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-session-id": sessionId,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            alert("Logged out successfully. New API key generated for the next session.");
+            // Clear the encrypted API key and hide the logout button
+            document.getElementById("logoutButton").style.display = "none";
+            document.getElementById("statusMessage").textContent =
+              "You have been logged out. Please log in again.";
+          } else {
+            alert(data.message || "Failed to log out. Please try again.");
+          }
+        })
+        .catch((error) => {
+          console.error("Error logging out:", error);
+          alert("An error occurred while logging out. Please try again.");
+        });
     }
   </script>
 </body>
