@@ -21,6 +21,11 @@ indexContent = indexContent.replace(
   })};`
 );
 
+indexContent = indexContent.replace(
+  "{{ NETLIFY_BACKEND_URL }}",
+  process.env.NETLIFY_BACKEND_URL
+);
+
 // Write the updated content back to index.html
 fs.writeFileSync(indexPath, indexContent, "utf8");
 
