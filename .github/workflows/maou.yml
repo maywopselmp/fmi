@@ -40,6 +40,9 @@ jobs:
       - name: Build the project
         run: npm run build
 
+      - name: Set file permissions
+        run: chmod -R 755 public
+
       # Step 6: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
