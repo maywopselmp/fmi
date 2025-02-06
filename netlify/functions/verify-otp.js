@@ -61,10 +61,15 @@ exports.handler = async (event) => {
     // Encrypt the new API key
     const encryptedApiKey = encrypt(newApiKey, ENCRYPTION_KEY);
 
-    // Store the new API key in the user's metadata using Netlify Identity
-    const { identity } = require("@netlify/identity-widget");
-
-    await identity.updateUserMetadata(userId, { newApiKey: encryptedApiKey });
+    // Store the new API key in the user's metadata
+    await fetch(`https://api.netlify.com/api/v1/sites/${process.env.NETLIFY_SITE_ID}/users/${userId}/metadata`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
+      },
+      body: JSON.stringify({ newApiKey: encryptedApiKey }),
+    });
 
     // Return the encrypted API key securely as an HTTP-only cookie
     return {
