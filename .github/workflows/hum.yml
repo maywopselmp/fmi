@@ -2,6 +2,9 @@ name: Regenerate package-lock.json
 
 on:
   workflow_dispatch:  # Allows manual triggering from GitHub UI
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch
 
 jobs:
   regenerate:
