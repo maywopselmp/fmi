@@ -1,5 +1,5 @@
 [build]
-  command = "npm ci && npm run build && npm run build:functions"
+  command = "npm ci"
   functions = "netlify/functions"
   publish = "public"
 
