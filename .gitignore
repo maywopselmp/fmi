@@ -1,6 +1,10 @@
+# Environment files
 .env
 .env.*
 .secret
+.env.local
+.env.development
+.env.production
 
 # Build artifacts
 node_modules/
@@ -25,6 +29,18 @@ coverage/
 Thumbs.db
 desktop.ini
 .Spotlight-V100
+
+# Netlify-specific files
+.netlify/
+# netlify.toml # Uncomment if you want to exclude netlify.toml
+
+# Firebase-specific files
+.firebase/
+firebase.json
+.firebaserc
+
+# GitHub Actions artifacts
+# .github/workflows/*.yml # Uncomment if you want to exclude GitHub Actions workflows
 
 # Other
 npm-debug.log*
