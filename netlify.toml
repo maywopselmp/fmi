@@ -18,4 +18,4 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
-    Content-Security-Policy = "default-src 'self' {{ NETLIFY_BACKEND_URL }} https://www.gstatic.com; script-src 'self' https://www.gstatic.com; style-src 'self'; object-src 'none';"
+    Content-Security-Policy = "default-src 'self' https://earnest-treacle-eded95.netlify.app https://www.gstatic.com; script-src 'self' https://www.gstatic.com; style-src 'self'; object-src 'none';"
