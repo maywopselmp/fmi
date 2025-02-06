@@ -1,7 +1,7 @@
 {
   "name": "mentor",
   "version": "1.0.0",
-  "description": "2fa",
+  "description": "2FA",
   "main": "index.js",
   "scripts": {
     "start": "netlify dev",
@@ -10,6 +10,7 @@
     "build:functions": "echo 'No TypeScript compilation needed'"
   },
   "dependencies": {
+    "crypto": "^1.0.1",
     "speakeasy": "^2.0.0"
   },
   "devDependencies": {
