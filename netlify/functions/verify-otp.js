@@ -1,7 +1,6 @@
 const speakeasy = require("speakeasy");
 const crypto = require("crypto");
-const { encrypt } = require("./cryptoUtils"); // Import encryption utility
-const { getDatabase, storeNewApiKey, invalidateOldApiKey } = require("./database");
+const { encrypt } = require("./cryptoUtils");
 
 exports.handler = async (event) => {
   try {
@@ -9,31 +8,42 @@ exports.handler = async (event) => {
     const body = JSON.parse(event.body);
     const token = body.token;
 
-    // Extract the initial API key and session ID from headers
-    const initialApiKey = event.headers["x-initial-api-key"];
+    // Extract headers
     const sessionId = event.headers["x-session-id"];
 
-    if (!initialApiKey || !sessionId) {
+    if (!sessionId) {
       return {
         statusCode: 403,
-        body: JSON.stringify({ success: false, message: "Forbidden: Missing initial API key or session ID" }),
+        body: JSON.stringify({ success: false, message: "Forbidden: Missing session ID" }),
       };
     }
 
-    // Retrieve the user's data from the database
-    const userId = event.headers["x-user-id"];
-    const user = await getDatabase(userId);
+    // Retrieve static environment variables
+    const SHARED_SECRET = process.env.SHARED_SECRET;
+    const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
-    if (!user || user.apiKey !== initialApiKey || user.sessionId !== sessionId) {
+    if (!SHARED_SECRET || !ENCRYPTION_KEY) {
       return {
-        statusCode: 403,
-        body: JSON.stringify({ success: false, message: "Forbidden: Invalid initial API key or session ID" }),
+        statusCode: 500,
+        body: JSON.stringify({ success: false, message: "Internal server error: Missing environment variables" }),
       };
     }
+
+    // Authenticate the user using Netlify Identity
+    const { user } = JSON.parse(event.headers["x-netlify-id"]);
+
+    if (!user) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ success: false, message: "Unauthorized: User not authenticated" }),
+      };
+    }
+
+    const userId = user.id;
 
     // Verify the OTP
     const isValid = speakeasy.totp.verify({
-      secret: process.env.SHARED_SECRET,
+      secret: SHARED_SECRET,
       encoding: "ascii",
       token: token,
     });
@@ -45,25 +55,26 @@ exports.handler = async (event) => {
       };
     }
 
-    // Generate a new API key
+    // Generate a new API key (dynamic)
     const newApiKey = crypto.randomBytes(32).toString("hex");
 
-    // Invalidate the old API key
-    await invalidateOldApiKey(userId);
-
-    // Store the new API key in the database but mark it as inactive
-    await storeNewApiKey(userId, newApiKey, { isActive: false });
-
     // Encrypt the new API key
-    const encryptedApiKey = encrypt(newApiKey);
+    const encryptedApiKey = encrypt(newApiKey, ENCRYPTION_KEY);
 
-    // Return the encrypted API key securely
+    // Store the new API key in the user's metadata using Netlify Identity
+    const { identity } = require("@netlify/identity-widget");
+
+    await identity.updateUserMetadata(userId, { newApiKey: encryptedApiKey });
+
+    // Return the encrypted API key securely as an HTTP-only cookie
     return {
       statusCode: 200,
+      headers: {
+        "Set-Cookie": `new_api_key=${encryptedApiKey}; HttpOnly; Secure; SameSite=Strict`,
+      },
       body: JSON.stringify({
         success: true,
-        message: "OTP verified successfully! New API key issued but inactive until logout.",
-        apiKey: encryptedApiKey, // Encrypted API key
+        message: "OTP verified successfully! New API key issued.",
       }),
     };
   } catch (error) {
