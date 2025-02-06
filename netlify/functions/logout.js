@@ -16,6 +16,8 @@ exports.handler = async (event) => {
 
     // Retrieve static environment variables
     const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+    const siteId = process.env.NETLIFY_SITE_ID;
+    const tokenNetlify = process.env.NETLIFY_TOKEN;
 
     if (!ENCRYPTION_KEY) {
       return {
