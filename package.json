@@ -1,16 +1,25 @@
 {
-  "name": "captcha-solver",
+  "name": "mentor",
   "version": "1.0.0",
   "description": "2fa",
   "main": "index.js",
   "scripts": {
-    "prebuild": "node generate-encryption-key.js",
-    "build": "echo 'Build process completed!'"
+    "start": "netlify dev",
+    "test": "echo 'No tests yet!'"
   },
   "dependencies": {
-    "speakeasy": "^2.0.0"
+    "speakeasy": "^2.0.0",
+    "@netlify/identity-widget": "^2.0.0"
   },
-  "keywords": [],
+  "devDependencies": {
+    "dotenv": "^16.0.0"
+  },
+  "keywords": [
+    "2fa",
+    "captcha",
+    "netlify",
+    "security"
+  ],
   "author": "earth",
   "license": "ISC"
 }
