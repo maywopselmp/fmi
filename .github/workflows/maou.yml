@@ -27,7 +27,6 @@ jobs:
       # Step 4: Set environment variables
       - name: Set environment variables
         run: |
-          echo "NETLIFY_BACKEND_URL=${{ secrets.NETLIFY_BACKEND_URL }}" >> .env
           echo "FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" >> .env
           echo "FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}" >> .env
           echo "FIREBASE_DATABASE_URL=${{ secrets.FIREBASE_DATABASE_URL }}" >> .env
