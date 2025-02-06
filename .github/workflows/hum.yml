@@ -2,20 +2,15 @@ name: Regenerate package-lock.json
 
 on:
   workflow_dispatch:  # Allows manual triggering from GitHub UI
-  push:
-    branches:
-      - main  # Trigger on pushes to the main branch
 
 jobs:
   regenerate:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code with full Git history
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       # Step 2: Set up Node.js
       - name: Set up Node.js
@@ -32,18 +27,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Step 5: Debug repository state
-      - name: Debug repository state
-        run: |
-          echo "Files in repository:"
-          ls -la
-          echo "Git status:"
-          git status
-
-      # Step 6: Commit updated package-lock.json
-      - name: Commit updated package-lock.json
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add package-lock.json
-          git diff --exit-code || (git commit -m "chore: regenerate package-lock.json" && git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD)
+      # Step 5: Create a pull request
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: update-package-lock
+          title: "chore: regenerate package-lock.json"
+          body: "This PR updates the package-lock.json file."
+          base: main
