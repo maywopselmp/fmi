@@ -1,31 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self'; object-src 'none';">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
   <title>2FA + CAPTCHA Solver</title>
   <!-- Firebase SDK for real-time updates -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f9;
+    }
+    .container {
+      text-align: center;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    input {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #statusMessage {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
-  <h1>2FA Verification</h1>
-  <h2>Enter OTP</h2>
-  <input type="text" id="otp" placeholder="Enter OTP">
-  <button onclick="verifyOTP()">Verify</button>
-  <h2>CAPTCHA Solver</h2>
-  <div id="captchaContainer"></div>
-  <div id="statusMessage"></div>
-  <button id="logoutButton" style="display: none;" onclick="logout()">Logout</button>
+  <div class="container">
+    <h1>2FA Verification</h1>
+    <h2>Enter OTP</h2>
+    <input type="text" id="otp" placeholder="Enter OTP">
+    <button onclick="verifyOTP()">Verify</button>
+
+    <h2>CAPTCHA Solver</h2>
+    <div id="captchaContainer"></div>
+    <div id="statusMessage">Waiting for new missions...</div>
+
+    <button id="logoutButton" style="display: none;" onclick="logout()">Logout</button>
+  </div>
+
   <script>
     // Initialize Firebase
     const firebaseConfig = {}; // Placeholder replaced by build.js
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-
     let sessionId = "session-abc123"; // Replace with actual session ID (e.g., generated dynamically)
 
     // Verify the OTP
     function verifyOTP() {
-      const otp = document.getElementById("otp").value;
+      const otp = document.getElementById("otp").value.trim();
+      if (!otp) {
+        alert("Please enter an OTP.");
+        return;
+      }
 
       fetch("/api/verify-otp", {
         method: "POST",
@@ -72,6 +129,7 @@
       const script = document.createElement('script');
       script.src = `https://${data.api_server}/geetest.js?gt=${data.gt}&challenge=${data.challenge}`;
       document.head.appendChild(script);
+
       script.onload = () => {
         initGeetest({
           gt: data.gt,
