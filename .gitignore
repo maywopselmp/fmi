@@ -1,6 +1,4 @@
 # Environment files
-.env
-.env.*
 .secret
 .env.local
 .env.development
