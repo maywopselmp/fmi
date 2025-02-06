@@ -1,6 +1,7 @@
 const speakeasy = require("speakeasy");
-const crypto = require("crypto");
-const { encrypt } = require("../utils/cryptoUtils");
+const path = require('path');
+const cryptoUtils = require(path.join(process.cwd(), 'utils', 'cryptoUtils'));
+const { encrypt } = cryptoUtils;
 
 exports.handler = async (event) => {
   try {
