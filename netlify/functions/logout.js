@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { encrypt } = require("../utils/cryptoUtils");
+const { encrypt } = require("./cryptoUtils");
 
 exports.handler = async (event) => {
   try {
