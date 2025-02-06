@@ -11,7 +11,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Access-Control-Allow-Origin = "https://maywopselmp/fmi"
+    Access-Control-Allow-Origin = "https://maywopselmp.github.io/fmi"
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type"
     X-Frame-Options = "DENY"
