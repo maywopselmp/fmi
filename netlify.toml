@@ -1,5 +1,5 @@
 [build]
-  command = "cp -r utils netlify/functions/utils && npm ci"
+  command = "npm ci"
   functions = "netlify/functions"
   publish = "public"
 
