@@ -14,12 +14,6 @@
   "devDependencies": {
     "dotenv": "^16.0.0"
   },
-  "keywords": [
-    "2fa",
-    "captcha",
-    "netlify",
-    "security"
-  ],
   "author": "earth",
   "license": "ISC"
 }
