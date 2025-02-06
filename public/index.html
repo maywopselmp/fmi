@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Security Headers -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' {{ NETLIFY_BACKEND_URL }} https://www.gstatic.com; script-src 'self' https://www.gstatic.com; style-src 'self'; object-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://earnest-treacle-eded95.netlify.app https://www.gstatic.com; script-src 'self' https://www.gstatic.com; style-src 'self'; object-src 'none';">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -77,7 +77,7 @@
     let sessionId = crypto.randomUUID();
 
     // Base URL for API endpoints (Netlify backend)
-    const BASE_URL = "{{ NETLIFY_BACKEND_URL }}";
+    const BASE_URL = "https://earnest-treacle-eded95.netlify.app";
 
     /**
      * Verify the OTP
