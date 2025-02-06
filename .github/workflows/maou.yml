@@ -1,0 +1,47 @@
+name: Deploy to Netlify
+
+on:
+  # Trigger deployment on push to the main branch
+  push:
+    branches:
+      - main
+  # Optionally trigger manually
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20 # Use the same version as your local environment
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Build the project (if necessary)
+      - name: Build the project
+        run: npm run build
+
+      # Step 5: Inject environment variables into index.html (via build.js)
+      - name: Inject Firebase configuration
+        run: node public/build.js
+
+      # Step 6: Deploy to Netlify
+      - name: Deploy to Netlify
+        uses: netlify/actions/cli@main
+        with:
+          args: deploy --prod
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          SHARED_SECRET: ${{ secrets.SHARED_SECRET }}
