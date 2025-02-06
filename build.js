@@ -23,7 +23,7 @@ indexContent = indexContent.replace(
 
 indexContent = indexContent.replace(
   "{{ NETLIFY_BACKEND_URL }}",
-  process.env.NETLIFY_BACKEND_URL
+  process.env.NETLIFY_BACKEND_URL || "https://earnest-treacle-eded95.netlify.app"
 );
 
 // Write the updated content back to index.html
