@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self'; object-src 'none';">
+  <!-- Security Headers -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://your-netlify-site.netlify.app https://www.gstatic.com; script-src 'self' https://www.gstatic.com; style-src 'self'; object-src 'none';">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -61,22 +62,26 @@
     <h2>Enter OTP</h2>
     <input type="text" id="otp" placeholder="Enter OTP">
     <button onclick="verifyOTP()">Verify</button>
-
     <h2>CAPTCHA Solver</h2>
     <div id="captchaContainer"></div>
     <div id="statusMessage">Waiting for new missions...</div>
-
     <button id="logoutButton" style="display: none;" onclick="logout()">Logout</button>
   </div>
-
   <script>
     // Initialize Firebase
     const firebaseConfig = {}; // Placeholder replaced by build.js
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    let sessionId = "session-abc123"; // Replace with actual session ID (e.g., generated dynamically)
 
-    // Verify the OTP
+    // Generate a unique session ID
+    let sessionId = crypto.randomUUID();
+
+    // Base URL for API endpoints (Netlify backend)
+    const BASE_URL = "https://your-netlify-site.netlify.app/api";
+
+    /**
+     * Verify the OTP
+     */
     function verifyOTP() {
       const otp = document.getElementById("otp").value.trim();
       if (!otp) {
@@ -84,7 +89,7 @@
         return;
       }
 
-      fetch("/api/verify-otp", {
+      fetch(`${BASE_URL}/verify-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -111,7 +116,9 @@
         });
     }
 
-    // Start listening for new CAPTCHAs
+    /**
+     * Start listening for new CAPTCHAs
+     */
     function startListeningForCaptchas() {
       database.ref('captchas')
         .orderByChild('status')
@@ -123,7 +130,9 @@
         });
     }
 
-    // Display and solve CAPTCHA
+    /**
+     * Display and solve CAPTCHA
+     */
     function displayCaptcha(captchaId, data) {
       document.getElementById('statusMessage').textContent = 'New mission detected!';
       const script = document.createElement('script');
@@ -158,9 +167,11 @@
       };
     }
 
-    // Logout Functionality
+    /**
+     * Logout Functionality
+     */
     function logout() {
-      fetch("/api/logout", {
+      fetch(`${BASE_URL}/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
