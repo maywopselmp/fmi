@@ -1,43 +1,48 @@
-name: GHN
+name: Deploy Frontend to GitHub Pages
 
 on:
-  # Trigger deployment on push to the main branch
   push:
     branches:
-      - main
-  # Optionally trigger manually
-  workflow_dispatch:
+      - main # Trigger on pushes to the main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the repository
+      # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20 # Use the same version as your local environment
+          node-version: 18 # Use Node.js version 18
 
       # Step 3: Install dependencies
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      # Step 4: Build the project (if necessary)
+      # Step 4: Set environment variables
+      - name: Set environment variables
+        run: |
+          echo "NETLIFY_BACKEND_URL=${{ secrets.NETLIFY_BACKEND_URL }}" >> .env
+          echo "FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" >> .env
+          echo "FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}" >> .env
+          echo "FIREBASE_DATABASE_URL=${{ secrets.FIREBASE_DATABASE_URL }}" >> .env
+          echo "FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}" >> .env
+          echo "FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}" >> .env
+          echo "FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}" >> .env
+          echo "FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}" >> .env
+
+      # Step 5: Build the project
       - name: Build the project
         run: npm run build
-
-      # Step 5: Inject environment variables into index.html (via build.js)
-      - name: Inject Firebase configuration
-        run: node public/build.js
 
       # Step 6: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public # Directory containing your static files
+          publish_dir: ./public # Directory containing the built frontend files
