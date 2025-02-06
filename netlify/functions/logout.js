@@ -1,52 +1,52 @@
-const { decrypt } = require("../utils/cryptoUtils"); // Import decryption utility
-const { getDatabase, storeNewApiKey, invalidateOldApiKey, activateNewApiKey, endSession } = require("../database");
+const crypto = require("crypto");
+const { encrypt } = require("../utils/cryptoUtils");
 
 exports.handler = async (event) => {
   try {
-    const userId = event.headers["x-user-id"];
+    // Extract headers
     const sessionId = event.headers["x-session-id"];
-    const encryptedApiKey = event.headers["x-api-key"];
+    const userId = event.headers["x-user-id"];
 
-    if (!encryptedApiKey || !sessionId) {
+    if (!sessionId || !userId) {
       return {
         statusCode: 403,
-        body: JSON.stringify({ success: false, message: "Forbidden: Missing API key or session ID" }),
+        body: JSON.stringify({ success: false, message: "Forbidden: Missing session ID or user ID" }),
       };
     }
 
-    // Decrypt the API key
-    let apiKey;
-    try {
-      apiKey = decrypt(encryptedApiKey);
-    } catch (error) {
+    // Retrieve static environment variables
+    const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+    if (!ENCRYPTION_KEY) {
       return {
-        statusCode: 403,
-        body: JSON.stringify({ success: false, message: "Forbidden: Invalid API key format" }),
+        statusCode: 500,
+        body: JSON.stringify({ success: false, message: "Internal server error: Missing environment variables" }),
       };
     }
 
-    // Retrieve the user's data from the database
-    const user = await getDatabase(userId);
+    // Authenticate the user using Netlify Identity
+    const { user } = JSON.parse(event.headers["x-netlify-id"]);
 
-    if (!user || user.apiKey !== apiKey || user.sessionId !== sessionId) {
+    if (!user) {
       return {
-        statusCode: 403,
-        body: JSON.stringify({ success: false, message: "Forbidden: Invalid API key or session ID" }),
+        statusCode: 401,
+        body: JSON.stringify({ success: false, message: "Unauthorized: User not authenticated" }),
       };
     }
+
+    // Invalidate the current API key
+    const { identity } = require("@netlify/identity-widget");
+
+    await identity.updateUserMetadata(userId, { newApiKey: null });
 
     // Generate a new API key for the next session
     const newApiKey = crypto.randomBytes(32).toString("hex");
+    const encryptedApiKey = encrypt(newApiKey, ENCRYPTION_KEY);
 
-    // Invalidate the old API key
-    await invalidateOldApiKey(userId);
+    // Store the new API key in the user's metadata
+    await identity.updateUserMetadata(userId, { newApiKey: encryptedApiKey });
 
-    // Store the new API key in the database and mark it as active
-    await storeNewApiKey(userId, newApiKey, { isActive: true });
-
-    // End the current session
-    await endSession(userId);
-
+    // Return success response
     return {
       statusCode: 200,
       body: JSON.stringify({
