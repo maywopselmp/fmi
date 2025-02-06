@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "speakeasy": "^2.0.0",
-    "@netlify/identity-widget": "^2.0.0"
   },
   "devDependencies": {
     "dotenv": "^16.0.0"
