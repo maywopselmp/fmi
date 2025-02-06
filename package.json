@@ -6,7 +6,7 @@
   "scripts": {
     "start": "netlify dev",
     "test": "echo 'No tests yet!'",
-    "build": "echo 'No build process needed'",
+    "build": "node public/build.js && echo 'Build process completed'",
     "build:functions": "echo 'No TypeScript compilation needed'"
   },
   "dependencies": {
