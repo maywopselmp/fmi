@@ -35,16 +35,28 @@ exports.handler = async (event) => {
     }
 
     // Invalidate the current API key
-    const { identity } = require("@netlify/identity-widget");
-
-    await identity.updateUserMetadata(userId, { newApiKey: null });
+    await fetch(`https://api.netlify.com/api/v1/sites/${process.env.NETLIFY_SITE_ID}/users/${userId}/metadata`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
+      },
+      body: JSON.stringify({ newApiKey: null }),
+    });
 
     // Generate a new API key for the next session
     const newApiKey = crypto.randomBytes(32).toString("hex");
     const encryptedApiKey = encrypt(newApiKey, ENCRYPTION_KEY);
 
     // Store the new API key in the user's metadata
-    await identity.updateUserMetadata(userId, { newApiKey: encryptedApiKey });
+    await fetch(`https://api.netlify.com/api/v1/sites/${process.env.NETLIFY_SITE_ID}/users/${userId}/metadata`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
+      },
+      body: JSON.stringify({ newApiKey: encryptedApiKey }),
+    });
 
     // Return success response
     return {
